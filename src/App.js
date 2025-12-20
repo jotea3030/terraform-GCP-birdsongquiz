@@ -101,6 +101,7 @@ export default function WingspanBirdQuiz() {
     setGameState('loading');
     setError(null);
     setSelectedAnswer(null);
+    setIsPlaying(false); // Reset playing state
     
     const bird = WingspanBirds[Math.floor(Math.random() * WingspanBirds.length)];
     setCurrentBird(bird);
@@ -124,14 +125,15 @@ export default function WingspanBirdQuiz() {
   };
 
   const playAudio = () => {
+    console.log('playAudio clicked, isPlaying:', isPlaying);
     if (audioRef.current) {
       if (isPlaying) {
+        console.log('Pausing audio');
         audioRef.current.pause();
-        setIsPlaying(false);
       } else {
-        setIsPlaying(true);
+        console.log('Playing audio');
         audioRef.current.currentTime = 0;
-        audioRef.current.play();
+        audioRef.current.play().catch(err => console.error('Play error:', err));
       }
     }
   };
@@ -148,9 +150,32 @@ export default function WingspanBirdQuiz() {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.onended = () => setIsPlaying(false);
-      audioRef.current.onpause = () => setIsPlaying(false);
-      audioRef.current.onplay = () => setIsPlaying(true);
+      const audio = audioRef.current;
+      
+      const handlePlay = () => {
+        console.log('Audio play event');
+        setIsPlaying(true);
+      };
+      
+      const handlePause = () => {
+        console.log('Audio pause event');
+        setIsPlaying(false);
+      };
+      
+      const handleEnded = () => {
+        console.log('Audio ended event');
+        setIsPlaying(false);
+      };
+      
+      audio.addEventListener('play', handlePlay);
+      audio.addEventListener('pause', handlePause);
+      audio.addEventListener('ended', handleEnded);
+      
+      return () => {
+        audio.removeEventListener('play', handlePlay);
+        audio.removeEventListener('pause', handlePause);
+        audio.removeEventListener('ended', handleEnded);
+      };
     }
   }, [audioUrl]);
 
@@ -205,15 +230,15 @@ export default function WingspanBirdQuiz() {
                 <div className="flex items-center justify-center gap-4 mb-4">
                   <VolumeIcon className={`w-8 h-8 ${isPlaying ? 'text-green-600 animate-pulse' : 'text-gray-600'}`} />
                   <span className="text-lg font-semibold text-gray-700">
-                    {isPlaying ? 'Playing bird call...' : 'Click to play'}
+                    {isPlaying ? 'Now playing...' : 'Ready to play'}
                   </span>
                 </div>
                 <div className="flex justify-center">
                   <button
                     onClick={playAudio}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                    className={`${isPlaying ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold py-2 px-6 rounded-lg transition-colors`}
                   >
-                    {isPlaying ? 'Pause' : 'Play Audio'}
+                    {isPlaying ? '⏸️ Pause' : '▶️ Play Audio'}
                   </button>
                 </div>
                 <audio ref={audioRef} src={audioUrl} preload="auto" />
