@@ -141,8 +141,6 @@ const WingspanBirds = [
   "White-throated Kingfisher", "Yellow Bittern"
 ];
 
-export default WingspanBirds;
-
 // Inline SVG icons
 const BirdIcon = () => (
   <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
